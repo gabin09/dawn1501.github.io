@@ -1,39 +1,91 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>멀티플레이어 퍼즐 게임</title>
+  <title>장부 정리</title>
   <style>
-//css코드 작서애
+    table {
+      border-collapse: collapse;
+      width: 50%;
+    }
+
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
   </style>
 </head>
 <body>
-  <h1>멀티플레이어 퍼즐 게임</h1>
-  
-  <div id="puzzle"></div>
-  <button onclick="shuffle()">섞기</button>
-  
+  <h1>장부 정리</h1>
+  <p>금액과 내용을 입력하고 정리 버튼을 누르세요.</p>
+  <label for="amount">금액:</label>
+  <input type="number" id="amount">
+  <br>
+  <label for="content">내용:</label>
+  <input type="text" id="content">
+  <br>
+  <button onclick="addEntry()">정리</button>
+  <br>
+  <h2>정리된 장부</h2>
+  <table id="entryTable">
+    <tr>
+      <th>날짜</th>
+      <th>금액</th>
+      <th>내용</th>
+    </tr>
+  </table>
+
   <script>
-    // 퍼즐 조각 배열
-    var pieces = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
-    
-    // 퍼즐 섞기 함수
-    function shuffle() {
-      // 퍼즐 조각 배열 섞기
-      for (var i = pieces.length - 1; i > 0; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var temp = pieces[i];
-        pieces[i] = pieces[j];
-        pieces[j] = temp;
+    let entries = [];
+
+    function addEntry() {
+      const amountInput = document.getElementById("amount");
+      const contentInput = document.getElementById("content");
+
+      const amount = amountInput.value;
+      const content = contentInput.value;
+
+      if (!amount || !content) {
+        alert("금액과 내용을 모두 입력하세요.");
+        return;
       }
-      
-      // 퍼즐 조각 배열을 HTML에 적용
-      var puzzleElement = document.getElementById("puzzle");
-      puzzleElement.innerHTML = "";
-      for (var i = 0; i < pieces.length; i++) {
-        var pieceElement = document.createElement("div");
-        pieceElement.innerHTML = pieces[i];
-        puzzleElement.appendChild(pieceElement);
-      }
+
+      const currentDate = new Date().toLocaleDateString();
+
+      const newEntry = {
+        date: currentDate,
+        amount: parseInt(amount),
+        content: content
+      };
+
+      entries.push(newEntry);
+
+      amountInput.value = "";
+      contentInput.value = "";
+
+      displayEntries();
+    }
+
+    function displayEntries() {
+      const table = document.getElementById("entryTable");
+      table.innerHTML = `
+        <tr>
+          <th>날짜</th>
+          <th>금액</th>
+          <th>내용</th>
+        </tr>
+      `;
+
+      entries.forEach((entry) => {
+        const row = table.insertRow();
+        row.insertCell().innerText = entry.date;
+        row.insertCell().innerText = entry.amount;
+        row.insertCell().innerText = entry.content;
+      });
     }
   </script>
 </body>
