@@ -11,6 +11,19 @@
             width: 40px;
             height: 40px;
             text-align: center;
+            border: <!DOCTYPE html>
+<html>
+<head>
+    <title>Sudoku Solver</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        td {
+            width: 40px;
+            height: 40px;
+            text-align: center;
             border: 1px solid #000;
         }
 
@@ -37,7 +50,16 @@
     <button onclick="solveSudoku()">스도쿠 풀이</button>
     <script>
         const sudokuBoard = [
-            // 스도쿠 보드 초기 상태를 입력하세요.
+            // 스도쿠 보드 초기 상태를 입력하세요. 0은 빈 칸을 나타냅니다.
+            [5, 3, 0, 0, 7, 0, 0, 0, 0],
+            [6, 0, 0, 1, 9, 5, 0, 0, 0],
+            [0, 9, 8, 0, 0, 0, 0, 6, 0],
+            [8, 0, 0, 0, 6, 0, 0, 0, 3],
+            [4, 0, 0, 8, 0, 3, 0, 0, 1],
+            [7, 0, 0, 0, 2, 0, 0, 0, 6],
+            [0, 6, 0, 0, 0, 0, 2, 8, 0],
+            [0, 0, 0, 4, 1, 9, 0, 0, 5],
+            [0, 0, 0, 0, 8, 0, 0, 7, 9]
         ];
 
         const table = document.getElementById("sudoku");
@@ -50,6 +72,10 @@
                 const input = document.createElement("input");
                 input.type = "text";
                 input.value = sudokuBoard[i][j] === 0 ? "" : sudokuBoard[i][j];
+                input.addEventListener("input", function () {
+                    // 사용자 입력을 스도쿠 보드에 업데이트합니다.
+                    sudokuBoard[i][j] = parseInt(input.value) || 0;
+                });
                 cell.appendChild(input);
                 row.appendChild(cell);
             }
