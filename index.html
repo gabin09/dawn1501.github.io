@@ -1,455 +1,87 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tetris Game</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #000;
-            color: #fff;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
+import cv2
+import mediapipe as mp
+import numpy as np
+import sqlite3
+import base64
 
-        h1 {
-            text-align: center;
-        }
+# 데이터베이스 초기화
+# SQLite 데이터베이스에 연결하고 커서를 생성합니다.
+conn = sqlite3.connect('faces.db')
+c = conn.cursor()
 
-        .game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+# 'faces' 테이블이 없으면 생성합니다. 이 테이블은 id와 face_data 열로 구성됩니다.
+c.execute('''CREATE TABLE IF NOT EXISTS faces
+             (id INTEGER PRIMARY KEY AUTOINCREMENT, face_data TEXT)''')
+conn.commit()
 
-        canvas {
-            border: 2px solid #fff;
-            background-color: #000;
-        }
+# MediaPipe Face Mesh 모델 초기화
+# MediaPipe의 Face Mesh 솔루션을 사용하여 얼굴의 468개 특징점을 검출합니다.
+mp_face_mesh = mp.solutions.face_mesh
+face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, min_detection_confidence=0.5)
 
-        .score-board {
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Tetris</h1>
-    <div class="game-container">
-        <canvas id="tetris" width="300" height="600"></canvas>
-        <div class="score-board">
-            <p>Score: <span id="score">0</span></p>
-        </div>
-    </div>
-    <script>
-        const canvas = document.getElementById('tetris');
-        const context = canvas.getContext('2d');
+# OpenCV를 사용하여 웹캠에서 실시간 영상 가져오기
+cap = cv2.VideoCapture(0)
 
-        const ROW = 20;
-        const COL = COLUMN = 10;
-        const SQ = squareSize = 30;
-        const VACANT = 'BLACK'; // color of an empty square
+def face_to_str(face):
+    """
+    얼굴 이미지를 Base64 문자열로 변환하는 함수.
+    """
+    _, buffer = cv2.imencode('.jpg', face)
+    face_str = base64.b64encode(buffer).decode('utf-8')
+    return face_str
 
-        // draw a square
-        function drawSquare(x, y, color) {
-            context.fillStyle = color;
-            context.fillRect(x * SQ, y * SQ, SQ, SQ);
+def is_face_in_db(face_str):
+    """
+    주어진 얼굴 문자열이 데이터베이스에 존재하는지 확인하는 함수.
+    """
+    c.execute("SELECT * FROM faces WHERE face_data = ?", (face_str,))
+    return c.fetchone() is not None
 
-            context.strokeStyle = 'BLACK';
-            context.strokeRect(x * SQ, y * SQ, SQ, SQ);
-        }
+while cap.isOpened():
+    success, frame = cap.read()
+    if not success:
+        break
 
-        // create the board
-        let board = [];
-        for (r = 0; r < ROW; r++) {
-            board[r] = [];
-            for (c = 0; c < COL; c++) {
-                board[r][c] = VACANT;
-            }
-        }
+    # 프레임을 RGB로 변환 (MediaPipe는 RGB 이미지를 사용)
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    
+    # 얼굴 특징점 검출
+    results = face_mesh.process(rgb_frame)
 
-        // draw the board
-        function drawBoard() {
-            for (r = 0; r < ROW; r++) {
-                for (c = 0; c < COL; c++) {
-                    drawSquare(c, r, board[r][c]);
-                }
-            }
-        }
+    if results.multi_face_landmarks:
+        for face_landmarks in results.multi_face_landmarks:
+            # 얼굴 영역 추출 (간단한 방식으로 얼굴 영역을 추출)
+            ih, iw, _ = frame.shape
+            face_x_min = int(min([landmark.x for landmark in face_landmarks.landmark]) * iw)
+            face_y_min = int(min([landmark.y for landmark in face_landmarks.landmark]) * ih)
+            face_x_max = int(max([landmark.x for landmark in face_landmarks.landmark]) * iw)
+            face_y_max = int(max([landmark.y for landmark in face_landmarks.landmark]) * ih)
 
-        drawBoard();
+            # 추출된 얼굴 영역을 자릅니다.
+            face_crop = frame[face_y_min:face_y_max, face_x_min:face_x_max]
+            
+            # 얼굴 이미지를 문자열로 변환합니다.
+            face_str = face_to_str(face_crop)
 
-        // Tetromino shapes
-        const I = [
-            [
-                [0, 0, 0, 0],
-                [1, 1, 1, 1],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]
-            ],
-            [
-                [0, 0, 1, 0],
-                [0, 0, 1, 0],
-                [0, 0, 1, 0],
-                [0, 0, 1, 0]
-            ],
-            [
-                [0, 0, 0, 0],
-                [1, 1, 1, 1],
-                [0, 0, 0, 0],
-                [0, 0, 0, 0]
-            ],
-            [
-                [0, 0, 1, 0],
-                [0, 0, 1, 0],
-                [0, 0, 1, 0],
-                [0, 0, 1, 0]
-            ]
-        ];
+            # 데이터베이스에 얼굴 이미지가 존재하는지 확인합니다.
+            if is_face_in_db(face_str):
+                print("hello world")
+            else:
+                # 얼굴 이미지가 데이터베이스에 존재하지 않으면 저장합니다.
+                c.execute("INSERT INTO faces (face_data) VALUES (?)", (face_str,))
+                conn.commit()
+                
+                # 얼굴 이미지를 파일로 저장합니다.
+                cv2.imwrite(f"captured_face_{len(c.execute('SELECT * FROM faces').fetchall())}.jpg", face_crop)
 
-        const J = [
-            [
-                [1, 0, 0],
-                [1, 1, 1],
-                [0, 0, 0]
-            ],
-            [
-                [0, 1, 1],
-                [0, 1, 0],
-                [0, 1, 0]
-            ],
-            [
-                [0, 0, 0],
-                [1, 1, 1],
-                [0, 0, 1]
-            ],
-            [
-                [0, 1, 0],
-                [0, 1, 0],
-                [1, 1, 0]
-            ]
-        ];
+    # 얼굴 특징점을 포함한 프레임을 화면에 표시합니다.
+    cv2.imshow('Face Detection', frame)
+    
+    # 'Esc' 키를 누르면 루프를 종료합니다.
+    if cv2.waitKey(5) & 0xFF == 27:
+        break
 
-        const L = [
-            [
-                [0, 0, 1],
-                [1, 1, 1],
-                [0, 0, 0]
-            ],
-            [
-                [0, 1, 0],
-                [0, 1, 0],
-                [0, 1, 1]
-            ],
-            [
-                [0, 0, 0],
-                [1, 1, 1],
-                [1, 0, 0]
-            ],
-            [
-                [1, 1, 0],
-                [0, 1, 0],
-                [0, 1, 0]
-            ]
-        ];
-
-        const O = [
-            [
-                [0, 1, 1],
-                [0, 1, 1],
-                [0, 0, 0]
-            ],
-            [
-                [0, 1, 1],
-                [0, 1, 1],
-                [0, 0, 0]
-            ],
-            [
-                [0, 1, 1],
-                [0, 1, 1],
-                [0, 0, 0]
-            ],
-            [
-                [0, 1, 1],
-                [0, 1, 1],
-                [0, 0, 0]
-            ]
-        ];
-
-        const S = [
-            [
-                [0, 1, 1],
-                [1, 1, 0],
-                [0, 0, 0]
-            ],
-            [
-                [0, 1, 0],
-                [0, 1, 1],
-                [0, 0, 1]
-            ],
-            [
-                [0, 0, 0],
-                [0, 1, 1],
-                [1, 1, 0]
-            ],
-            [
-                [1, 0, 0],
-                [1, 1, 0],
-                [0, 1, 0]
-            ]
-        ];
-
-        const T = [
-            [
-                [0, 1, 0],
-                [1, 1, 1],
-                [0, 0, 0]
-            ],
-            [
-                [0, 1, 0],
-                [0, 1, 1],
-                [0, 1, 0]
-            ],
-            [
-                [0, 0, 0],
-                [1, 1, 1],
-                [0, 1, 0]
-            ],
-            [
-                [0, 1, 0],
-                [1, 1, 0],
-                [0, 1, 0]
-            ]
-        ];
-
-        const Z = [
-            [
-                [1, 1, 0],
-                [0, 1, 1],
-                [0, 0, 0]
-            ],
-            [
-                [0, 0, 1],
-                [0, 1, 1],
-                [0, 1, 0]
-            ],
-            [
-                [0, 0, 0],
-                [1, 1, 0],
-                [0, 1, 1]
-            ],
-            [
-                [0, 1, 0],
-                [1, 1, 0],
-                [1, 0, 0]
-            ]
-        ];
-
-        // the pieces and their colors
-        const PIECES = [
-            [Z, 'red'],
-            [S, 'green'],
-            [T, 'yellow'],
-            [O, 'blue'],
-            [L, 'purple'],
-            [I, 'cyan'],
-            [J, 'orange']
-        ];
-
-        // generate a piece
-        function randomPiece() {
-            let r = randomN = Math.floor(Math.random() * PIECES.length); // 0 -> 6
-            return new Piece(PIECES[r][0], PIECES[r][1]);
-        }
-
-        let p = randomPiece();
-
-        // The Object Piece
-        function Piece(tetromino, color) {
-            this.tetromino = tetromino;
-            this.color = color;
-
-            this.tetrominoN = 0; // we start from the first pattern
-            this.activeTetromino = this.tetromino[this.tetrominoN];
-
-            // we need to control the pieces
-            this.x = 3;
-            this.y = -2;
-        }
-
-        // fill function
-        Piece.prototype.fill = function(color) {
-            for (r = 0; r < this.activeTetromino.length; r++) {
-                for (c = 0; c < this.activeTetromino[r].length; c++) {
-                    // we draw only occupied squares
-                    if (this.activeTetromino[r][c]) {
-                        drawSquare(this.x + c, this.y + r, color);
-                    }
-                }
-            }
-        }
-
-        // draw a piece to the board
-        Piece.prototype.draw = function() {
-            this.fill(this.color);
-        }
-
-        // undraw a piece
-        Piece.prototype.unDraw = function() {
-            this.fill(VACANT);
-        }
-
-        // move Down the piece
-        Piece.prototype.moveDown = function() {
-            if (!this.collision(0, 1, this.activeTetromino)) {
-                this.unDraw();
-                this.y++;
-                this.draw();
-            } else {
-                // we lock the piece and generate a new one
-                this.lock();
-                p = randomPiece();
-            }
-        }
-
-        // move Right the piece
-        Piece.prototype.moveRight = function() {
-            if (!this.collision(1, 0, this.activeTetromino)) {
-                this.unDraw();
-                this.x++;
-                this.draw();
-            }
-        }
-
-        // move Left the piece
-        Piece.prototype.moveLeft = function() {
-            if (!this.collision(-1, 0, this.activeTetromino)) {
-                this.unDraw();
-                this.x--;
-                this.draw();
-            }
-        }
-
-        // rotate the piece
-        Piece.prototype.rotate = function() {
-            let nextPattern = this.tetromino[(this.tetrominoN + 1) % this.tetromino.length];
-            let kick = 0;
-
-            if (this.collision(0, 0, nextPattern)) {
-                if (this.x > COL / 2) {
-                    kick = -1;
-                } else {
-                    kick = 1;
-                }
-            }
-
-            if (!this.collision(kick, 0, nextPattern)) {
-                this.unDraw();
-                this.x += kick;
-                this.tetrominoN = (this.tetrominoN + 1) % this.tetromino.length;
-                this.activeTetromino = nextPattern;
-                this.draw();
-            }
-        }
-
-        let score = 0;
-
-        Piece.prototype.lock = function() {
-            for (r = 0; r < this.activeTetromino.length; r++) {
-                for (c = 0; c < this.activeTetromino[r].length; c++) {
-                    if (!this.activeTetromino[r][c]) {
-                        continue;
-                    }
-                    if (this.y + r < 0) {
-                        alert("Game Over");
-                        // stop request animation frame
-                        gameOver = true;
-                        break;
-                    }
-                    board[this.y + r][this.x + c] = this.color;
-                }
-            }
-
-            // remove full rows
-            for (r = 0; r < ROW; r++) {
-                let isRowFull = true;
-                for (c = 0; c < COL; c++) {
-                    isRowFull = isRowFull && (board[r][c] != VACANT);
-                }
-                if (isRowFull) {
-                    for (y = r; y > 1; y--) {
-                        for (c = 0; c < COL; c++) {
-                            board[y][c] = board[y - 1][c];
-                        }
-                    }
-                    for (c = 0; c < COL; c++) {
-                        board[0][c] = VACANT;
-                    }
-                    score += 10;
-                }
-            }
-            drawBoard();
-            document.getElementById("score").innerHTML = score;
-        }
-
-        // collision function
-        Piece.prototype.collision = function(x, y, piece) {
-            for (r = 0; r < piece.length; r++) {
-                for (c = 0; c < piece[r].length; c++) {
-                    if (!piece[r][c]) {
-                        continue;
-                    }
-                    let newX = this.x + c + x;
-                    let newY = this.y + r + y;
-
-                    if (newX < 0 || newX >= COL || newY >= ROW) {
-                        return true;
-                    }
-                    if (newY < 0) {
-                        continue;
-                    }
-                    if (board[newY][newX] != VACANT) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        // control the piece
-        document.addEventListener("keydown", CONTROL);
-
-        function CONTROL(event) {
-            if (event.keyCode == 37) {
-                p.moveLeft();
-            } else if (event.keyCode == 38) {
-                p.rotate();
-            } else if (event.keyCode == 39) {
-                p.moveRight();
-            } else if (event.keyCode == 40) {
-                p.moveDown();
-            }
-        }
-
-        // drop the piece every 1sec
-        let dropStart = Date.now();
-        let gameOver = false;
-        function drop() {
-            let now = Date.now();
-            let delta = now - dropStart;
-            if (delta > 1000) {
-                p.moveDown();
-                dropStart = Date.now();
-            }
-            if (!gameOver) {
-                requestAnimationFrame(drop);
-            }
-        }
-
-        drop();
-    </script>
-</body>
-</html>
+# 자원 해제 및 정리
+cap.release()
+cv2.destroyAllWindows()
+conn.close()
