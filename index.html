@@ -1,87 +1,227 @@
-import cv2
-import mediapipe as mp
-import numpy as np
-import sqlite3
-import base64
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 소프트웨어</title>
+    <style>
+        body {
+            background-color: #333;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #chat-container {
+            width: 500px;
+            height: 600px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            background-color: #333;
+        }
+        #chat-display {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 1px solid #555;
+        }
+        .message {
+            margin: 5px 0;
+        }
+        .message span {
+            font-size: 16px;
+        }
+        #input-container {
+            display: flex;
+            padding: 10px;
+        }
+        #chat-input {
+            flex: 1;
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        #send-button {
+            background-color: #333;
+            border: none;
+            border-radius: 5px;
+            margin-left: 10px;
+        }
+        #send-button img {
+            width: 40px;
+            height: 40px;
+        }
+        #send-button:hover {
+            background-color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-display"></div>
+        <div id="input-container">
+            <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." />
+            <button id="send-button">
+                <img src="paper-plane.png" alt="Send">
+            </button>
+        </div>
+    </div>
 
-# 데이터베이스 초기화
-# SQLite 데이터베이스에 연결하고 커서를 생성합니다.
-conn = sqlite3.connect('faces.db')
-c = conn.cursor()
+    <script>
+        const foodLocations = {
+            "우유": "A열 1번째 선반",
+            "빵": "A열 2번째 선반",
+            "치즈": "A열 3번째 선반",
+            "사과": "A열 4번째 선반",
+            "계란": "A열 5번째 선반",
+            "버터": "B열 1번째 선반",
+            "감자": "B열 2번째 선반",
+            "당근": "B열 3번째 선반",
+            "양파": "B열 4번째 선반",
+            "고구마": "B열 5번째 선반",
+            "두부": "C열 1번째 선반",
+            "소고기": "C열 2번째 선반",
+            "돼지고기": "C열 3번째 선반",
+            "닭고기": "C열 4번째 선반",
+            "연어": "C열 5번째 선반",
+            "새우": "D열 1번째 선반",
+            "참치": "D열 2번째 선반",
+            "요거트": "D열 3번째 선반",
+            "케첩": "D열 4번째 선반",
+            "마요네즈": "D열 5번째 선반",
+            "간장": "E열 1번째 선반",
+            "고추장": "E열 2번째 선반",
+            "된장": "E열 3번째 선반",
+            "식초": "E열 4번째 선반",
+            "설탕": "E열 5번째 선반",
+            "소금": "F열 1번째 선반",
+            "후추": "F열 2번째 선반",
+            "밀가루": "F열 3번째 선반",
+            "쌀": "F열 4번째 선반",
+            "파스타": "F열 5번째 선반",
+            "스파게티": "A열 1번째 선반",
+            "라면": "A열 2번째 선반",
+            "국수": "A열 3번째 선반",
+            "떡": "A열 4번째 선반",
+            "김": "A열 5번째 선반",
+            "참기름": "B열 1번째 선반",
+            "들기름": "B열 2번째 선반",
+            "식용유": "B열 3번째 선반",
+            "옥수수": "B열 4번째 선반",
+            "땅콩": "B열 5번째 선반",
+            "아몬드": "C열 1번째 선반",
+            "호두": "C열 2번째 선반",
+            "잣": "C열 3번째 선반",
+            "밤": "C열 4번째 선반",
+            "호박": "C열 5번째 선반",
+            "가지": "D열 1번째 선반",
+            "브로콜리": "D열 2번째 선반",
+            "양배추": "D열 3번째 선반",
+            "상추": "D열 4번째 선반",
+            "오이": "D열 5번째 선반",
+            "토마토": "E열 1번째 선반",
+            "파프리카": "E열 2번째 선반",
+            "피망": "E열 3번째 선반",
+            "딸기": "E열 4번째 선반",
+            "블루베리": "E열 5번째 선반",
+            "바나나": "F열 1번째 선반",
+            "오렌지": "F열 2번째 선반",
+            "레몬": "F열 3번째 선반",
+            "라임": "F열 4번째 선반",
+            "포도": "F열 5번째 선반",
+            "배": "A열 1번째 선반",
+            "복숭아": "A열 2번째 선반",
+            "자두": "A열 3번째 선반",
+            "멜론": "A열 4번째 선반",
+            "수박": "A열 5번째 선반",
+            "체리": "B열 1번째 선반",
+            "파인애플": "B열 2번째 선반",
+            "망고": "B열 3번째 선반",
+            "키위": "B열 4번째 선반",
+            "석류": "B열 5번째 선반",
+            "코코넛": "C열 1번째 선반",
+            "구아바": "C열 2번째 선반",
+            "리치": "C열 3번째 선반",
+            "두리안": "C열 4번째 선반",
+            "용과": "C열 5번째 선반"
+        };
 
-# 'faces' 테이블이 없으면 생성합니다. 이 테이블은 id와 face_data 열로 구성됩니다.
-c.execute('''CREATE TABLE IF NOT EXISTS faces
-             (id INTEGER PRIMARY KEY AUTOINCREMENT, face_data TEXT)''')
-conn.commit()
+        let currentState = null;
 
-# MediaPipe Face Mesh 모델 초기화
-# MediaPipe의 Face Mesh 솔루션을 사용하여 얼굴의 468개 특징점을 검출합니다.
-mp_face_mesh = mp.solutions.face_mesh
-face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, min_detection_confidence=0.5)
+        function displayInitialMessages() {
+            const chatDisplay = document.getElementById('chat-display');
+            chatDisplay.innerHTML = `
+                <div class="message"><span>AI: 어떤 도움을 드릴까요?</span></div>
+                <div class="message"><span>AI: 1. 물건 찾기</span></div>
+                <div class="message"><span>AI: 2. 불편사항</span></div>
+                <div class="message"><span>AI: 답변은 "물건 찾기" or "불편사항"으로만 대답해주세요.</span></div>
+                <div class="message"><span>AI: 또한 돌아가려면 "돌아가기"라고 입력해주세요.</span></div>
+            `;
+            currentState = null;
+        }
 
-# OpenCV를 사용하여 웹캠에서 실시간 영상 가져오기
-cap = cv2.VideoCapture(0)
+        function sendMessage() {
+            const chatInput = document.getElementById('chat-input');
+            const message = chatInput.value;
+            const chatDisplay = document.getElementById('chat-display');
+            if (message) {
+                chatDisplay.innerHTML += `<div class="message"><span>나: ${message}</span></div>`;
+                if (message === "돌아가기") {
+                    displayInitialMessages();
+                } else if (message === "물건 찾기" || message === "물건찾기") {
+                    chatDisplay.innerHTML += `<div class="message"><span>AI: 찾으시려는 물건이나 음식의 이름을 말씀해주세요.</span></div>`;
+                    currentState = "물건 찾기";
+                } else if (message === "불편사항" || message === "불편 사항") {
+                    chatDisplay.innerHTML += `
+                        <div class="message"><span>AI: 어떤 종류의 불편사항인가요?</span></div>
+                        <div class="message"><span>AI: 다음 중 골라주세요.</span></div>
+                        <div class="message"><span>AI: 1. 기술적인 문제</span></div>
+                        <div class="message"><span>AI: 2. 물리적인 문제</span></div>
+                        <div class="message"><span>AI: 3. 기타 문제</span></div>
+                    `;
+                    currentState = "불편사항";
+                } else if (currentState === "물건 찾기") {
+                    if (foodLocations[message]) {
+                        const location = foodLocations[message];
+                        chatDisplay.innerHTML += `<div class="message"><span>AI: ${message}는 ${location}에 있습니다.</span></div>`;
+                    } else {
+                        chatDisplay.innerHTML += `<div class="message"><span>AI: 죄송합니다, 그런 음식은 저희 매장에 존재하지 않습니다.</span></div>`;
+                    }
+                } else if (currentState === "불편사항") {
+                    if (message === "기술적인 문제" || "기술적인문제") {
+                        chatDisplay.innerHTML += `<div class="message"><span>AI: 판매자와 연결을 해드리겠습니다. 잠시만 기다려주세요.</span></div>`;
+                    } else if (message === "물리적인 문제" || message === "물리적인문제") {
+                        chatDisplay.innerHTML += `<div class="message"><span>AI: 정확히 어떤 문제가 발생했는지 말씀해 주세요.</span></div>`;
+                    } else if (message === "기타 문제" || message === "기타문제") {
+                        chatDisplay.innerHTML += `<div class="message"><span>AI: 어떤 문제가 발생했는지 자세히 말씀해 주세요.</span></div>`;
+                    } else {
+                        chatDisplay.innerHTML += `<div class="message"><span>AI: 죄송합니다, 유효한 불편사항을 선택해 주세요.</span></div>`;
+                    }
+                } else {
+                    chatDisplay.innerHTML += `<div class="message"><span>AI: 죄송합니다, "물건 찾기" 또는 "불편사항"으로만 대답해주세요.</span></div>`;
+                }
+                chatInput.value = '';
+                chatDisplay.scrollTop = chatDisplay.scrollHeight;
+            }
+        }
 
-def face_to_str(face):
-    """
-    얼굴 이미지를 Base64 문자열로 변환하는 함수.
-    """
-    _, buffer = cv2.imencode('.jpg', face)
-    face_str = base64.b64encode(buffer).decode('utf-8')
-    return face_str
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+        document.getElementById('chat-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
 
-def is_face_in_db(face_str):
-    """
-    주어진 얼굴 문자열이 데이터베이스에 존재하는지 확인하는 함수.
-    """
-    c.execute("SELECT * FROM faces WHERE face_data = ?", (face_str,))
-    return c.fetchone() is not None
-
-while cap.isOpened():
-    success, frame = cap.read()
-    if not success:
-        break
-
-    # 프레임을 RGB로 변환 (MediaPipe는 RGB 이미지를 사용)
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    
-    # 얼굴 특징점 검출
-    results = face_mesh.process(rgb_frame)
-
-    if results.multi_face_landmarks:
-        for face_landmarks in results.multi_face_landmarks:
-            # 얼굴 영역 추출 (간단한 방식으로 얼굴 영역을 추출)
-            ih, iw, _ = frame.shape
-            face_x_min = int(min([landmark.x for landmark in face_landmarks.landmark]) * iw)
-            face_y_min = int(min([landmark.y for landmark in face_landmarks.landmark]) * ih)
-            face_x_max = int(max([landmark.x for landmark in face_landmarks.landmark]) * iw)
-            face_y_max = int(max([landmark.y for landmark in face_landmarks.landmark]) * ih)
-
-            # 추출된 얼굴 영역을 자릅니다.
-            face_crop = frame[face_y_min:face_y_max, face_x_min:face_x_max]
-            
-            # 얼굴 이미지를 문자열로 변환합니다.
-            face_str = face_to_str(face_crop)
-
-            # 데이터베이스에 얼굴 이미지가 존재하는지 확인합니다.
-            if is_face_in_db(face_str):
-                print("hello world")
-            else:
-                # 얼굴 이미지가 데이터베이스에 존재하지 않으면 저장합니다.
-                c.execute("INSERT INTO faces (face_data) VALUES (?)", (face_str,))
-                conn.commit()
-                
-                # 얼굴 이미지를 파일로 저장합니다.
-                cv2.imwrite(f"captured_face_{len(c.execute('SELECT * FROM faces').fetchall())}.jpg", face_crop)
-
-    # 얼굴 특징점을 포함한 프레임을 화면에 표시합니다.
-    cv2.imshow('Face Detection', frame)
-    
-    # 'Esc' 키를 누르면 루프를 종료합니다.
-    if cv2.waitKey(5) & 0xFF == 27:
-        break
-
-# 자원 해제 및 정리
-cap.release()
-cv2.destroyAllWindows()
-conn.close()
+        window.onload = displayInitialMessages;
+    </script>
+</body>
+</html>
