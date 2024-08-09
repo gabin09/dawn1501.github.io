@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>음식 목록</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        input[type="text"] {
+            width: calc(100% - 120px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            width: 100px;
+            padding: 10px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        @media (max-width: 600px) {
+            th, td {
+                font-size: 14px;
+                padding: 8px;
+            }
+            input[type="text"] {
+                padding: 8px;
+                width: calc(100% - 100px);
+            }
+            button {
+                width: 80px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>음식 목록</h1>
+    <div style="display: flex; align-items: center;">
+        <input type="text" id="search" placeholder="검색...">
+        <button id="search-btn">확인</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>음식</th>
+                <th>위치</th>
+            </tr>
+        </thead>
+        <tbody id="food-table">
+            <!-- 테이블 내용은 JavaScript로 동적으로 추가됩니다. -->
+        </tbody>
+    </table>
+
+    <script>
+        // 음식 목록 데이터 (예시로 몇 개만 추가)
+        const foods = [
+            { name: "우유", location: "A열 1번째 선반" },
+            { name: "빵", location: "A열 2번째 선반" },
+            { name: "치즈", location: "A열 3번째 선반" },
+            { name: "사과", location: "A열 4번째 선반" },
+            { name: "계란", location: "A열 5번째 선반" },
+            { name: "버터", location: "B열 1번째 선반" },
+            { name: "감자", location: "B열 2번째 선반" },
+            { name: "당근", location: "B열 3번째 선반" },
+            { name: "양파", location: "B열 4번째 선반" },
+            { name: "고구마", location: "B열 5번째 선반" },
+            { name: "두부", location: "C열 1번째 선반" },
+            { name: "소고기", location: "C열 2번째 선반" },
+            { name: "돼지고기", location: "C열 3번째 선반" },
+            { name: "닭고기", location: "C열 4번째 선반" },
+            { name: "연어", location: "C열 5번째 선반" },
+            { name: "새우", location: "D열 1번째 선반" },
+            { name: "참치", location: "D열 2번째 선반" },
+            { name: "요거트", location: "D열 3번째 선반" },
+            { name: "케첩", location: "D열 4번째 선반" },
+            { name: "마요네즈", location: "D열 5번째 선반" },
+            { name: "간장", location: "E열 1번째 선반" },
+            { name: "고추장", location: "E열 2번째 선반" },
+            { name: "된장", location: "E열 3번째 선반" },
+            { name: "식초", location: "E열 4번째 선반" },
+            { name: "설탕", location: "E열 5번째 선반" },
+            { name: "소금", location: "F열 1번째 선반" },
+            { name: "후추", location: "F열 2번째 선반" },
+            { name: "밀가루", location: "F열 3번째 선반" },
+            { name: "쌀", location: "F열 4번째 선반" },
+            { name: "파스타", location: "F열 5번째 선반" },
+            { name: "스파게티", location: "A열 6번째 선반" },
+            { name: "라면", location: "A열 7번째 선반" },
+            { name: "국수", location: "A열 8번째 선반" },
+            { name: "떡", location: "A열 9번째 선반" },
+            { name: "김", location: "A열 10번째 선반" },
+            { name: "참기름", location: "B열 6번째 선반" },
+            { name: "들기름", location: "B열 7번째 선반" },
+            { name: "식용유", location: "B열 8번째 선반" },
+            { name: "옥수수", location: "B열 9번째 선반" },
+            { name: "땅콩", location: "B열 10번째 선반" },
+            { name: "아몬드", location: "C열 6번째 선반" },
+            { name: "호두", location: "C열 7번째 선반" },
+            { name: "잣", location: "C열 8번째 선반" },
+            { name: "밤", location: "C열 9번째 선반" },
+            { name: "호박", location: "C열 10번째 선반" },
+            { name: "가지", location: "D열 6번째 선반" },
+            { name: "브로콜리", location: "D열 7번째 선반" },
+            { name: "양배추", location: "D열 8번째 선반" },
+            { name: "상추", location: "D열 9번째 선반" },
+            { name: "오이", location: "D열 10번째 선반" },
+            { name: "토마토", location: "E열 6번째 선반" },
+            { name: "파프리카", location: "E열 7번째 선반" },
+            { name: "피망", location: "E열 8번째 선반" },
+            { name: "딸기", location: "E열 9번째 선반" },
+            { name: "블루베리", location: "E열 10번째 선반" },
+            { name: "바나나", location: "F열 6번째 선반" },
+            { name: "오렌지", location: "F열 7번째 선반" },
+            { name: "레몬", location: "F열 8번째 선반" },
+            { name: "라임", location: "F열 9번째 선반" },
+            { name: "포도", location: "F열 10번째 선반" },
+            { name: "배", location: "A열 11번째 선반" },
+            { name: "복숭아", location: "A열 12번째 선반" },
+            { name: "자두", location: "A열 13번째 선반" },
+            { name: "멜론", location: "A열 14번째 선반" },
+            { name: "수박", location: "A열 15번째 선반" },
+            { name: "체리", location: "B열 11번째 선반" },
+            { name: "파인애플", location: "B열 12번째 선반" },
+            { name: "망고", location: "B열 13번째 선반" },
+            { name: "키위", location: "B열 14번째 선반" },
+            { name: "석류", location: "B열 15번째 선반" },
+            { name: "코코넛", location: "C열 11번째 선반" },
+            { name: "구아바", location: "C열 12번째 선반" },
+            { name: "리치", location: "C열 13번째 선반" },
+            { name: "두리안", location: "C열 14번째 선반" },
+            { name: "용과", location: "C열 15번째 선반" },
+            { name: "과자", location: "B열 16번째 선반" },
+            { name: "미역", location: "A열 16번째 선반" },
+            { name: "김치", location: "A열 17번째 선반" },
+            { name: "식빵", location: "A열 18번째 선반" },
+            { name: "통밀빵", location: "A열 19번째 선반" },
+            { name: "딸기잼", location: "A열 20번째 선반" },
+            { name: "오징어", location: "B열 17번째 선반" },
+            { name: "문어", location: "B열 18번째 선반" },
+            { name: "장조림", location: "B열 19번째 선반" },
+            { name: "콩나물", location: "B열 20번째 선반" },
+            { name: "시금치", location: "B열 21번째 선반" },
+            { name: "버섯", location: "C열 16번째 선반" },
+            { name: "양송이", location: "C열 17번째 선반" },
+            { name: "표고버섯", location: "C열 18번째 선반" },
+            { name: "송이버섯", location: "C열 19번째 선반" },
+            { name: "팽이버섯", location: "C열 20번째 선반" },
+            { name: "계란찜", location: "D열 11번째 선반" },
+            { name: "볶음밥", location: "D열 12번째 선반" },
+            { name: "순두부찌개", location: "D열 13번째 선반" },
+            { name: "김밥", location: "D열 14번째 선반" },
+            { name: "불고기", location: "D열 15번째 선반" },
+            { name: "크림", location: "E열 11번째 선반" },
+            { name: "시럽", location: "E열 12번째 선반" },
+            { name: "매운 소스", location: "E열 13번째 선반" },
+            { name: "발사믹 식초", location: "E열 14번째 선반" },
+            { name: "타르타르 소스", location: "E열 15번째 선반" },
+            { name: "양배추", location: "F열 11번째 선반" },
+            { name: "브로콜리", location: "F열 12번째 선반" },
+            { name: "오징어 튀김", location: "F열 13번째 선반" },
+            { name: "채소볶음", location: "F열 14번째 선반" },
+            { name: "산채비빔밥", location: "F열 15번째 선반" },
+            { name: "리코타치즈", location: "A열 21번째 선반" },
+            { name: "브리치즈", location: "A열 22번째 선반" },
+            { name: "카망베르치즈", location: "A열 23번째 선반" },
+            { name: "파르메산치즈", location: "A열 24번째 선반" },
+            { name: "모차렐라치즈", location: "A열 25번째 선반" },
+            { name: "차슈", location: "B열 22번째 선반" },
+            { name: "토마토소스", location: "B열 23번째 선반" },
+            { name: "마늘", location: "B열 24번째 선반" },
+            { name: "양파가루", location: "B열 25번째 선반" },
+            { name: "파슬리", location: "B열 26번째 선반" },
+            { name: "아보카도", location: "C열 21번째 선반" },
+            { name: "체리 토마토", location: "C열 22번째 선반" },
+            { name: "코코넛밀크", location: "C열 23번째 선반" },
+            { name: "드라이토마토", location: "C열 24번째 선반" },
+            { name: "카레가루", location: "C열 25번째 선반" },
+            { name: "인삼", location: "D열 16번째 선반" },
+            { name: "녹차", location: "D열 17번째 선반" },
+            { name: "차", location: "D열 18번째 선반" },
+            { name: "건대추", location: "D열 19번째 선반" },
+            { name: "홍삼", location: "D열 20번째 선반" },
+            { name: "호박씨", location: "E열 16번째 선반" },
+            { name: "피넛버터", location: "E열 17번째 선반" },
+            { name: "무화과", location: "E열 18번째 선반" },
+            { name: "건포도", location: "E열 19번째 선반" },
+            { name: "아몬드 밀크", location: "E열 20번째 선반" },
+            { name: "스위트콘", location: "F열 16번째 선반" },
+            { name: "크래커", location: "F열 17번째 선반" },
+            { name: "옥수수 전분", location: "F열 18번째 선반" },
+            { name: "아이스크림", location: "F열 19번째 선반" },
+            { name: "젤리", location: "F열 20번째 선반" },
+            { name: "콩국수", location: "A열 26번째 선반" },
+            { name: "파인애플", location: "A열 27번째 선반" },
+            { name: "맥주", location: "A열 28번째 선반" },
+            { name: "와인", location: "A열 29번째 선반" },
+            { name: "소주", location: "A열 30번째 선반" },
+            { name: "크림치즈", location: "B열 27번째 선반" },
+            { name: "생크림", location: "B열 28번째 선반" },
+            { name: "포도주스", location: "B열 29번째 선반" },
+            { name: "오렌지주스", location: "B열 30번째 선반" },
+            { name: "자몽", location: "B열 31번째 선반" },
+            { name: "무지방 요거트", location: "C열 26번째 선반" },
+            { name: "드립커피", location: "C열 27번째 선반" },
+            { name: "녹차가루", location: "C열 28번째 선반" },
+            { name: "스무디", location: "C열 29번째 선반" },
+            { name: "미숫가루", location: "C열 30번째 선반" },
+            { name: "피자", location: "D열 21번째 선반" },
+            { name: "핫도그", location: "D열 22번째 선반" },
+            { name: "닭강정", location: "D열 23번째 선반" },
+            { name: "떡볶이", location: "D열 24번째 선반" },
+            { name: "치킨너겟", location: "D열 25번째 선반" },
+            { name: "타코", location: "E열 21번째 선반" },
+            { name: "부리토", location: "E열 22번째 선반" },
+            { name: "쌀국수", location: "E열 23번째 선반" },
+            { name: "라자냐", location: "E열 24번째 선반" },
+            { name: "수제버거", location: "E열 25번째 선반" },
+            { name: "밀크셰이크", location: "F열 21번째 선반" },
+            { name: "팬케이크", location: "F열 22번째 선반" },
+            { name: "머핀", location: "F열 23번째 선반" },
+            { name: "와플", location: "F열 24번째 선반" },
+            { name: "롤케이크", location: "F열 25번째 선반" },
+            { name: "비프 스튜", location: "A열 31번째 선반" },
+            { name: "스튜", location: "A열 32번째 선반" },
+            { name: "김치찌개", location: "A열 33번째 선반" },
+            { name: "된장찌개", location: "A열 34번째 선반" },
+            { name: "순대국", location: "A열 35번째 선반" }
+        ];
+
+        // 테이블에 데이터 추가
+        const foodTable = document.getElementById('food-table');
+        foods.forEach(food => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${food.name}</td><td>${food.location}</td>`;
+            foodTable.appendChild(row);
+        });
+
+        // 검색 기능
+        document.getElementById('search-btn').addEventListener('click', function() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const rows = foodTable.getElementsByTagName('tr');
+            
+            Array.from(rows).forEach(row => {
+                const cells = row.getElementsByTagName('td');
+                if (cells.length > 0) {
+                    const name = cells[0].textContent.toLowerCase();
+                    const location = cells[1].textContent.toLowerCase();
+                    if (name.includes(searchTerm) || location.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+v
