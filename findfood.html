@@ -6,46 +6,78 @@
     <title>음식 목록</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 20px;
-            background-color: #f4f4f4;
+            background-color: #f5f5f5;
+            color: #444;
+        }
+        h1 {
+            text-align: center;
             color: #333;
+            margin-bottom: 20px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
-            background-color: #fff;
+            background-color: #ffffff;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 12px;
+            padding: 14px;
             text-align: left;
         }
         th {
-            background-color: #f4f4f4;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        td {
+            background-color: #ffffff;
         }
         input[type="text"] {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             margin-bottom: 20px;
-            border: 1px solid #ddd;
+            border: 2px solid #ddd;
             border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
         }
-        h1 {
-            text-align: center;
-            color: #333;
+        input[type="text"]:focus {
+            border-color: #007bff;
+            outline: none;
         }
+        button {
+            display: block;
+            width: 150px;
+            padding: 10px;
+            margin: 0 auto;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+
         @media (max-width: 600px) {
             th, td {
                 font-size: 14px;
-                padding: 8px;
+                padding: 10px;
             }
             input[type="text"] {
-                padding: 8px;
+                padding: 10px;
+            }
+            button {
+                width: 100px;
+                font-size: 14px;
             }
         }
     </style>
@@ -53,6 +85,8 @@
 <body>
     <h1>음식 목록</h1>
     <input type="text" id="search" placeholder="검색...">
+
+    <button id="return-button" onclick="MoveTo()">돌아가기</button>
 
     <table>
         <thead>
@@ -67,8 +101,13 @@
     </table>
 
     <script>
+        function MoveTo() {
+            window.location.href = "ai.html";
+        }
+
         // 음식 목록 데이터
         const foods = [
+            // 기존 데이터 그대로 사용
             { name: "우유", location: "A열 1번째 선반" },
             { name: "빵", location: "A열 2번째 선반" },
             { name: "치즈", location: "A열 3번째 선반" },
