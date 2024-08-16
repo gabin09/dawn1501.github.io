@@ -90,9 +90,6 @@
         <button id="back-button" onclick="displayInitialMessages()">
             <img src="reload.png" alt="reload" height="20" width="20">
         </button>
-        <button id="findfood-button" onclick="goToFindFood()">
-            물건목록
-        </button>
     </div>
 </div>
 
@@ -317,9 +314,6 @@
         }
     }
 
-    function goToFindFood() {
-        displayMessage('찾으시려는 물건이나 음식의 이름을 말씀해주세요.');
-        currentState = "물건 찾기";
     }
 
     window.onload = displayInitialMessages;
