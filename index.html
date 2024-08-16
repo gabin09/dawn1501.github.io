@@ -67,6 +67,8 @@
             flex: 0;
             font-size: 14px;
         }
+        #findfood-button {
+            font-size: 14px;
         }
         .message {
             margin: 5px 0;
@@ -312,6 +314,9 @@
         }
     }
 
+    function goToFindFood() {
+        displayMessage('찾으시려는 물건이나 음식의 이름을 말씀해주세요.');
+        currentState = "물건 찾기";
     }
 
     window.onload = displayInitialMessages;
