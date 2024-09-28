@@ -75,9 +75,7 @@
     <div class="container">
         <h1>한문 문제 풀이</h1>
 
-        <div class="question" id="question">
-            문제: 한자의 음을 쓰시오 <br> <strong>松下問童子</strong>
-        </div>
+        <div class="question" id="question"></div>
         <input type="text" id="answer" placeholder="정답을 입력하세요">
 
         <button onclick="checkAnswer()">제출</button>
@@ -133,18 +131,38 @@
             { question: '한자의 음을 쓰시오: 京', answer: '서울 경', hint: '서울' },
         ];
 
+        let shuffledProblems = [];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
         let currentProblem = 0;
 
         function showProblem() {
-            document.getElementById('question').innerHTML = '문제: ' + problems[currentProblem].question;
+            if (shuffledProblems.length === 0) {
+                document.getElementById('question').innerHTML = '모든 문제를 푸셨습니다!';
+                document.getElementById('answer').style.display = 'none';
+                document.getElementById('skip-btn').style.display = 'none';
+                document.getElementById('hint-btn').style.display = 'none';
+                document.getElementById('result').innerHTML = '';
+                return;
+            }
+
+            const problem = shuffledProblems.pop();
+            document.getElementById('question').innerHTML = '문제: ' + problem.question;
             document.getElementById('answer').value = '';
             document.getElementById('result').innerHTML = '';
             document.getElementById('hint').innerHTML = '';  // 힌트 초기화
+            currentProblem = problem;
         }
 
         function checkAnswer() {
             const userAnswer = document.getElementById('answer').value.trim();
-            const correctAnswer = problems[currentProblem].answer;
+            const correctAnswer = currentProblem.answer;
 
             if (userAnswer === correctAnswer) {
                 document.getElementById('result').innerHTML = '정답입니다!';
@@ -156,20 +174,11 @@
         }
 
         function nextProblem() {
-            currentProblem++;
-            if (currentProblem < problems.length) {
-                showProblem();
-            } else {
-                document.getElementById('question').innerHTML = '모든 문제를 푸셨습니다!';
-                document.getElementById('answer').style.display = 'none';
-                document.getElementById('skip-btn').style.display = 'none';
-                document.getElementById('hint-btn').style.display = 'none';
-                document.getElementById('result').innerHTML = '';
-            }
+            showProblem();
         }
 
         function showHint() {
-            const hint = problems[currentProblem].hint;
+            const hint = currentProblem.hint;
             document.getElementById('hint').innerHTML = '힌트: ' + hint;
         }
 
@@ -186,6 +195,9 @@
             setTimeout(nextProblem, 2000);
         });
 
+        // 문제를 섞어서 보여주기
+        shuffleArray(problems);
+        shuffledProblems = [...problems];  // 섞인 문제들을 shuffledProblems에 복사
         showProblem();
     </script>
 </body>
