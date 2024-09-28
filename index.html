@@ -3,324 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 소프트웨어</title>
+    <title>한문 문제 풀이</title>
     <style>
         body {
-            background-color: #333;
-            color: #fff;
             font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
         }
-        #chat-container {
-            width: 100%;
-            max-width: 480px;
-            background-color: #444;
-            padding: 10px;
+
+        .container {
+            background-color: white;
+            padding: 20px;
             border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            height: 90vh;
-            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
         }
-        #chat-display {
-            background-color: #333;
-            color: #fff;
-            border: 1px solid #555;
-            border-radius: 5px;
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .question {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
             padding: 10px;
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
-        #chat-input-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        #chat-input {
-            flex: 1;
-            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            border: 1px solid #555;
-            background-color: #333;
-            color: #fff;
-            font-size: 14px;
         }
-        #send-button, #back-button {
+
+        button {
+            width: 100%;
             padding: 10px;
-            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
             border: none;
-            background-color: #555;
-            color: #fff;
+            border-radius: 5px;
             cursor: pointer;
+            margin-bottom: 10px;
         }
-        #send-button:hover, #back-button:hover {
-            background-color: #666;
+
+        button:hover {
+            background-color: #0056b3;
         }
-        #back-button {
-            background-color: #888;
-            flex: 0;
-            font-size: 14px;
+
+        #result {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
         }
-        #findfood-button {
-            font-size: 14px;
-        }
-        .message {
-            margin: 5px 0;
-        }
-        .message strong {
-            color: #f39c12; /* AI 메시지 색상 */
+
+        #hint {
+            margin-top: 10px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <h1>한문 문제 풀이</h1>
 
-<div id="chat-container">
-    <div id="chat-display"></div>
-    <div id="chat-input-container">
-        <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." onkeypress="if(event.key === 'Enter') sendMessage();">
-        <button id="send-button" onclick="sendMessage()">
-            <img src="paper-plane.png" alt="send" height="20" width="20">
-        </button>
-        <button id="back-button" onclick="displayInitialMessages()">
-            <img src="reload.png" alt="reload" height="20" width="20">
-        </button>
+        <div class="question" id="question">
+            문제: 한자의 음을 쓰시오 <br> <strong>松下問童子</strong>
+        </div>
+        <input type="text" id="answer" placeholder="정답을 입력하세요">
+
+        <button onclick="checkAnswer()">제출</button>
+        <button id="skip-btn" onclick="nextProblem()">스킵</button>
+        <button id="hint-btn" onclick="showHint()">힌트</button>
+
+        <div id="result"></div>
+        <div id="hint"></div>
     </div>
-</div>
 
-<script>
-    const foodLocations = {
-        "우유": "A열 1번째 선반",
-        "빵": "A열 2번째 선반",
-        "치즈": "A열 3번째 선반",
-        "사과": "A열 4번째 선반",
-        "계란": "A열 5번째 선반",
-        "버터": "B열 1번째 선반",
-        "감자": "B열 2번째 선반",
-        "당근": "B열 3번째 선반",
-        "양파": "B열 4번째 선반",
-        "고구마": "B열 5번째 선반",
-        "두부": "C열 1번째 선반",
-        "소고기": "C열 2번째 선반",
-        "돼지고기": "C열 3번째 선반",
-        "닭고기": "C열 4번째 선반",
-        "연어": "C열 5번째 선반",
-        "새우": "D열 1번째 선반",
-        "참치": "D열 2번째 선반",
-        "요거트": "D열 3번째 선반",
-        "케첩": "D열 4번째 선반",
-        "마요네즈": "D열 5번째 선반",
-        "간장": "E열 1번째 선반",
-        "고추장": "E열 2번째 선반",
-        "된장": "E열 3번째 선반",
-        "식초": "E열 4번째 선반",
-        "설탕": "E열 5번째 선반",
-        "소금": "F열 1번째 선반",
-        "후추": "F열 2번째 선반",
-        "밀가루": "F열 3번째 선반",
-        "쌀": "F열 4번째 선반",
-        "파스타": "F열 5번째 선반",
-        "스파게티": "A열 1번째 선반",
-        "라면": "A열 2번째 선반",
-        "국수": "A열 3번째 선반",
-        "떡": "A열 4번째 선반",
-        "김": "A열 5번째 선반",
-        "참기름": "B열 1번째 선반",
-        "들기름": "B열 2번째 선반",
-        "식용유": "B열 3번째 선반",
-        "옥수수": "B열 4번째 선반",
-        "땅콩": "B열 5번째 선반",
-        "아몬드": "C열 1번째 선반",
-        "호두": "C열 2번째 선반",
-        "잣": "C열 3번째 선반",
-        "밤": "C열 4번째 선반",
-        "호박": "C열 5번째 선반",
-        "가지": "D열 1번째 선반",
-        "브로콜리": "D열 2번째 선반",
-        "양배추": "D열 3번째 선반",
-        "상추": "D열 4번째 선반",
-        "오이": "D열 5번째 선반",
-        "토마토": "E열 1번째 선반",
-        "파프리카": "E열 2번째 선반",
-        "피망": "E열 3번째 선반",
-        "딸기": "E열 4번째 선반",
-        "블루베리": "E열 5번째 선반",
-        "바나나": "F열 1번째 선반",
-        "오렌지": "F열 2번째 선반",
-        "레몬": "F열 3번째 선반",
-        "라임": "F열 4번째 선반",
-        "포도": "F열 5번째 선반",
-        "배": "A열 1번째 선반",
-        "복숭아": "A열 2번째 선반",
-        "자두": "A열 3번째 선반",
-        "멜론": "A열 4번째 선반",
-        "수박": "A열 5번째 선반",
-        "체리": "B열 1번째 선반",
-        "파인애플": "B열 2번째 선반",
-        "망고": "B열 3번째 선반",
-        "키위": "B열 4번째 선반",
-        "석류": "B열 5번째 선반",
-        "코코넛": "C열 1번째 선반",
-        "구아바": "C열 2번째 선반",
-        "리치": "C열 3번째 선반",
-        "두리안": "C열 4번째 선반",
-        "용과": "C열 5번째 선반",
-        "과자": "B열 3번째 선반",
-        "빵": "A열 2번째 선반",
-        "치즈": "A열 3번째 선반",
-        "사과": "A열 4번째 선반",
-        "계란": "A열 5번째 선반",
-        "버터": "B열 1번째 선반",
-        "감자": "B열 2번째 선반",
-        "당근": "B열 3번째 선반",
-        "양파": "B열 4번째 선반",
-        "고구마": "B열 5번째 선반",
-        "두부": "C열 1번째 선반",
-        "소고기": "C열 2번째 선반",
-        "돼지고기": "C열 3번째 선반",
-        "닭고기": "C열 4번째 선반",
-        "연어": "C열 5번째 선반",
-        "새우": "D열 1번째 선반",
-        "참치": "D열 2번째 선반",
-        "요거트": "D열 3번째 선반",
-        "케첩": "D열 4번째 선반",
-        "마요네즈": "D열 5번째 선반",
-        "간장": "E열 1번째 선반",
-        "고추장": "E열 2번째 선반",
-        "된장": "E열 3번째 선반",
-        "식초": "E열 4번째 선반",
-        "설탕": "E열 5번째 선반",
-        "소금": "F열 1번째 선반",
-        "후추": "F열 2번째 선반",
-        "밀가루": "F열 3번째 선반",
-        "쌀": "F열 4번째 선반",
-        "파스타": "F열 5번째 선반",
-        "스파게티": "A열 1번째 선반",
-        "라면": "A열 2번째 선반",
-        "국수": "A열 3번째 선반",
-        "떡": "A열 4번째 선반",
-        "김": "A열 5번째 선반",
-        "참기름": "B열 1번째 선반",
-        "들기름": "B열 2번째 선반",
-        "식용유": "B열 3번째 선반",
-        "옥수수": "B열 4번째 선반",
-        "땅콩": "B열 5번째 선반",
-        "아몬드": "C열 1번째 선반",
-        "호두": "C열 2번째 선반",
-        "잣": "C열 3번째 선반",
-        "밤": "C열 4번째 선반",
-        "호박": "C열 5번째 선반",
-        "가지": "D열 1번째 선반",
-        "브로콜리": "D열 2번째 선반",
-        "양배추": "D열 3번째 선반",
-        "상추": "D열 4번째 선반",
-        "오이": "D열 5번째 선반",
-        "토마토": "E열 1번째 선반",
-        "파프리카": "E열 2번째 선반",
-        "피망": "E열 3번째 선반",
-        "딸기": "E열 4번째 선반",
-        "블루베리": "E열 5번째 선반",
-        "바나나": "F열 1번째 선반",
-        "오렌지": "F열 2번째 선반",
-        "레몬": "F열 3번째 선반",
-        "라임": "F열 4번째 선반",
-        "포도": "F열 5번째 선반",
-        "배": "A열 1번째 선반",
-        "복숭아": "A열 2번째 선반",
-        "자두": "A열 3번째 선반",
-        "멜론": "A열 4번째 선반",
-        "수박": "A열 5번째 선반",
-        "체리": "B열 1번째 선반",
-        "파인애플": "B열 2번째 선반",
-        "망고": "B열 3번째 선반",
-        "키위": "B열 4번째 선반",
-        "석류": "B열 5번째 선반",
-        "코코넛": "C열 1번째 선반",
-        "구아바": "C열 2번째 선반",
-        "리치": "C열 3번째 선반",
-        "두리안": "C열 4번째 선반",
-        "용과": "C열 5번째 선반",
-        "과자": "B열 3번째 선반"
-    };
+    <script>
+        const problems = [
+            { question: '한자의 음을 쓰시오: 松下問童子', answer: '송하문동자', hint: 'ㅅㅎㅁㄷㅈ' },
+            { question: '해석 순서를 쓰시오: 松下問童子', answer: '12534', hint: '1 _ _ 34' },
+            { question: '토를 쓰시오: 松下問童子', answer: '하니', hint: '끝 글자: _니' },
+            { question: '한자의 음을 쓰시오: 喜悅', answer: '희열', hint: 'ㅎㅇ' },
+            { question: '해석 순서를 쓰시오: 言師採藥去', answer: '51324', hint: '5 _ 3 _ _' },
+            { question: '토를 쓰시오: 言師採藥去', answer: '라', hint: '라' },
+            { question: '한자의 음을 쓰시오: 只在此山中', answer: '지재차산중', hint: 'ㅈㅈㅊㅅㅈ' },
+            { question: '해석 순서를 쓰시오: 只在此山中', answer: '15234', hint: '1 _ 2 _ _' },
+            { question: '토를 쓰시오: 只在此山中', answer: '이나', hint: '끝 글자: _나' },
+            { question: '한자의 음을 쓰시오: 雲深不知處', answer: '운심부지처', hint: 'ㅇㅅㅂㅈㅊ' },
+            { question: '해석 순서를 쓰시오: 雲深不知處', answer: '12543', hint: '1 _ _ 4 _' },
+            { question: '토를 쓰시오: 雲深不知處', answer: '라', hint: '라' },
+            { question: '한자의 음을 쓰시오: 神策究天文', answer: '신책구천문', hint: 'ㅅㅊㄱㅊㅁ' },
+            { question: '해석 순서를 쓰시오: 神策究天文', answer: '12534', hint: '1 _ _ 3 _' },
+            { question: '토를 쓰시오: 神策究天文', answer: '이요', hint: '이요' },
+            { question: '한자의 음을 쓰시오: 妙算窮地理', answer: '묘산궁지리', hint: 'ㅁㅅㄱㅈㄹ' },
+            { question: '해석 순서를 쓰시오: 妙算窮地理', answer: '12534', hint: '1 _ _ 3 _' },
+            { question: '토를 쓰시오: 妙算窮地理', answer: '라', hint: '라' },
+            { question: '한자의 음을 쓰시오: 戰勝功旣高', answer: '전승공기고', hint: 'ㅈㅅㄱㄱ' },
+            { question: '해석 순서를 쓰시오: 戰勝功旣高', answer: '12345', hint: '1 _ 2 _ 4 _' },
+            { question: '토를 쓰시오: 戰勝功旣高', answer: '하니', hint: '하니' },
+            { question: '한자의 음을 쓰시오: 知足願云止', answer: '지족원운지', hint: 'ㅈㅈㄱㅇㅈ' },
+            { question: '해석 순서를 쓰시오: 知足願云止', answer: '21543', hint: '2 _ 1 _ _' },
+            { question: '토를 쓰시오: 知足願云止', answer: '라', hint: '라' },
+            { question: '한자의 음을 쓰시오: 人言江南樂', answer: '강언강남락', hint: 'ㄱㅇㄱㄴㄹ' },
+            { question: '해석 순서를 쓰시오: 人言江南樂', answer: '15234', hint: '1 _ 5 _ _' },
+            { question: '토를 쓰시오: 人言江南樂', answer: '이나', hint: '끝 글자: _나' },
+            { question: '한자의 음을 쓰시오: 我見江南愁', answer: '아견강남수', hint: 'ㅇㄱㄱㄴㅅ' },
+            { question: '해석 순서를 쓰시오: 我見江南愁', answer: '15234', hint: '1 _ 5 _ _' },
+            { question: '토를 쓰시오: 我見江南愁', answer: '라', hint: '라' },
+            { question: '한자의 음을 쓰시오: 年年沙浦口', answer: '년년사포구', hint: 'ㄴㄴㅅㅍㄱ' },
+            { question: '해석 순서를 쓰시오: 年年沙浦口', answer: '12345', hint: '1 _ 2 _ 3 _' },
+            { question: '토를 쓰시오: 年年沙浦口', answer: '에', hint: '끝 글자: _에' },
+            { question: '한자의 음을 쓰시오: 腸斷望歸舟', answer: '장단망귀주', hint: 'ㅈㄷㅁㄱㅈ' },
+            { question: '해석 순서를 쓰시오: 腸斷望歸舟', answer: '12534', hint: '1 _ 2 _ 3 _' },
+            { question: '토를 쓰시오: 腸斷望歸舟', answer: '다', hint: '다' },
+            { question: '한자의 음을 쓰시오: 貧', answer: '가난할 빈', hint: '가난할' },
+            { question: '한자의 음을 쓰시오: 歡', answer: '기쁠 환', hint: '기쁠' },
+            { question: '한자의 음을 쓰시오: 深', answer: '깊을 심', hint: '깊을' },
+            { question: '한자의 음을 쓰시오: 驚', answer: '놀랄 경', hint: '놀랄' },
+            { question: '한자의 음을 쓰시오: 京', answer: '서울 경', hint: '서울' },
+        ];
 
-    let currentState = null;
+        let currentProblem = 0;
 
-    function displayMessage(message, sender = 'AI') {
-        const chatDisplay = document.getElementById('chat-display');
-        chatDisplay.innerHTML += `<div class="message"><strong>${sender}:</strong> ${message}</div>`;
-        chatDisplay.scrollTop = chatDisplay.scrollHeight; // 자동 스크롤
-    }
+        function showProblem() {
+            document.getElementById('question').innerHTML = '문제: ' + problems[currentProblem].question;
+            document.getElementById('answer').value = '';
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('hint').innerHTML = '';  // 힌트 초기화
+        }
 
-    function displayInitialMessages() {
-        const chatDisplay = document.getElementById('chat-display');
-        chatDisplay.innerHTML = ''; // 기존 메시지 제거
-        displayMessage('어떤 도움을 드릴까요?');
-        displayMessage('1. 물건 찾기');
-        displayMessage('2. 불편사항');
-        displayMessage('답변은 "물건 찾기" 또는 "불편사항" 또는 "1" 또는 "2"라고 대답해주세요.');
-        displayMessage('또한 돌아가려면 "돌아가기"라고 입력해주세요.');
-        currentState = null;
-    }
+        function checkAnswer() {
+            const userAnswer = document.getElementById('answer').value.trim();
+            const correctAnswer = problems[currentProblem].answer;
 
-    function sendMessage() {
-        const chatInput = document.getElementById('chat-input');
-        const message = chatInput.value.trim();
-        if (message) {
-            displayMessage(message, '나');
-            chatInput.value = '';
-
-            if (message === "돌아가기" || message === "돌아가기") {
-                displayInitialMessages();
-            } else if (currentState === null) {
-                if (message === "1" || message === "물건 찾기" || message === "물건찾기") {
-                    displayMessage('찾으시려는 물건이나 음식의 이름을 말씀해주세요.');
-                    currentState = "물건 찾기";
-                } else if (message === "2" || message === "불편사항" || message === "불편 사항") {
-                    displayMessage('어떤 종류의 불편사항인가요?');
-                    displayMessage('1. 기술적인 문제');
-                    displayMessage('2. 물리적인 문제');
-                    displayMessage('3. 기타 문제');
-                    displayMessage('4. 판매자 연결(당장의 도움이 필요할시 사용해주세요.)');
-                    currentState = "불편사항";
-                } else {
-                    displayMessage('죄송합니다, "물건 찾기" 또는 "불편사항"으로만 대답해주세요.');
-                }
-            } else if (currentState === "물건 찾기") {
-                if (foodLocations[message]) {
-                    displayMessage(`${message}는 ${foodLocations[message]}에 있습니다.`);
-                } else {
-                    displayMessage(`죄송합니다, ${message}의 위치를 찾을 수 없습니다.`);
-                }
-                currentState = null;
-            } else if (currentState === "불편사항") {
-                if (message === "1" || message === "기술적인 문제" || message === "기술적인문제") {
-                    displayMessage('어떤 문제가 발생했는지 자세히 말씀해 주세요.');
-                } else if (message === "2" || message === "물리적인 문제" || message === "물리적인문제") {
-                    displayMessage('어떤 문제가 발생했는지 자세히 말씀해 주세요.');
-                } else if (message === "3" || message === "기타 문제" || message === "기타문제") {
-                    displayMessage('어떤 문제가 발생했는지 자세히 말씀해 주세요.');
-                } else if (message === "4" || message === "판매자 연결" || message === "판매자연결") {
-                    displayMessage('판매자의 전화번호: 010-1234-1234');
-                } else {
-                    displayMessage('죄송합니다, "기술적인 문제", "물리적인 문제", "기타 문제", 또는 "판매자 연결"로만 대답해주세요.');
-                }
-                currentState = null;
+            if (userAnswer === correctAnswer) {
+                document.getElementById('result').innerHTML = '정답입니다!';
+                document.getElementById('result').style.color = 'green';
+            } else {
+                document.getElementById('result').innerHTML = `오답입니다! 정답은 "${correctAnswer}"입니다.`;
+                document.getElementById('result').style.color = 'red';
             }
         }
-    }
 
-    function goToFindFood() {
-        displayMessage('찾으시려는 물건이나 음식의 이름을 말씀해주세요.');
-        currentState = "물건 찾기";
-    }
+        function nextProblem() {
+            currentProblem++;
+            if (currentProblem < problems.length) {
+                showProblem();
+            } else {
+                document.getElementById('question').innerHTML = '모든 문제를 푸셨습니다!';
+                document.getElementById('answer').style.display = 'none';
+                document.getElementById('skip-btn').style.display = 'none';
+                document.getElementById('hint-btn').style.display = 'none';
+                document.getElementById('result').innerHTML = '';
+            }
+        }
 
-    window.onload = displayInitialMessages;
-</script>
+        function showHint() {
+            const hint = problems[currentProblem].hint;
+            document.getElementById('hint').innerHTML = '힌트: ' + hint;
+        }
 
+        document.querySelector('button').addEventListener('click', function() {
+            checkAnswer();
+            setTimeout(nextProblem, 2000);
+        });
+
+        showProblem();
+    </script>
 </body>
 </html>
