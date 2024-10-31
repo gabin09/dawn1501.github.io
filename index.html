@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한문 문제 풀이</title>
+    <title>최빈값</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -88,55 +88,10 @@
 
     <script>
         const problems = [
-            { question: '한자의 음을 쓰시오: 松下問童子', answer: '송하문동자', hint: 'ㅅㅎㅁㄷㅈ' },
-            { question: '해석 순서를 쓰시오: 松下問童子', answer: '12534', hint: '1 _ _ 34' },
-            { question: '토를 쓰시오: 松下問童子', answer: '하니', hint: '끝 글자: _니' },
-            { question: '한자의 음을 쓰시오: 喜悅', answer: '희열', hint: 'ㅎㅇ' },
-            { question: '해석 순서를 쓰시오: 言師採藥去', answer: '51324', hint: '5 _ 3 _ _' },
-            { question: '토를 쓰시오: 言師採藥去', answer: '라', hint: '라' },
-            { question: '한자의 음을 쓰시오: 只在此山中', answer: '지재차산중', hint: 'ㅈㅈㅊㅅㅈ' },
-            { question: '해석 순서를 쓰시오: 只在此山中', answer: '15234', hint: '1 _ 2 _ _' },
-            { question: '토를 쓰시오: 只在此山中', answer: '이나', hint: '끝 글자: _나' },
-            { question: '한자의 음을 쓰시오: 雲深不知處', answer: '운심부지처', hint: 'ㅇㅅㅂㅈㅊ' },
-            { question: '해석 순서를 쓰시오: 雲深不知處', answer: '12543', hint: '1 _ _ 4 _' },
-            { question: '토를 쓰시오: 雲深不知處', answer: '라', hint: '라' },
-            { question: '한자의 음을 쓰시오: 神策究天文', answer: '신책구천문', hint: 'ㅅㅊㄱㅊㅁ' },
-            { question: '해석 순서를 쓰시오: 神策究天文', answer: '12534', hint: '1 _ _ 3 _' },
-            { question: '토를 쓰시오: 神策究天文', answer: '이요', hint: '이요' },
-            { question: '한자의 음을 쓰시오: 妙算窮地理', answer: '묘산궁지리', hint: 'ㅁㅅㄱㅈㄹ' },
-            { question: '해석 순서를 쓰시오: 妙算窮地理', answer: '12534', hint: '1 _ _ 3 _' },
-            { question: '토를 쓰시오: 妙算窮地理', answer: '라', hint: '라' },
-            { question: '한자의 음을 쓰시오: 戰勝功旣高', answer: '전승공이고', hint: 'ㅈㅅㄱㅇㄱ' },
-            { question: '해석 순서를 쓰시오: 戰勝功旣高', answer: '12345', hint: '1 _ 2 _ 4 _' },
-            { question: '토를 쓰시오: 戰勝功旣高', answer: '하니', hint: '하니' },
-            { question: '한자의 음을 쓰시오: 知足願云止', answer: '지족원운지', hint: 'ㅈㅈㄱㅇㅈ' },
-            { question: '해석 순서를 쓰시오: 知足願云止', answer: '21543', hint: '2 _ 1 _ _' },
-            { question: '토를 쓰시오: 知足願云止', answer: '라', hint: '라' },
-            { question: '한자의 음을 쓰시오: 人言江南樂', answer: '인언강남락', hint: 'ㅇㅇㄱㄴㄹ' },
-            { question: '해석 순서를 쓰시오: 人言江南樂', answer: '15234', hint: '1 _ 5 _ _' },
-            { question: '토를 쓰시오: 人言江南樂', answer: '이나', hint: '끝 글자: _나' },
-            { question: '한자의 음을 쓰시오: 我見江南愁', answer: '아견강남수', hint: 'ㅇㄱㄱㄴㅅ' },
-            { question: '해석 순서를 쓰시오: 我見江南愁', answer: '15234', hint: '1 _ 5 _ _' },
-            { question: '토를 쓰시오: 我見江南愁', answer: '라', hint: '라' },
-            { question: '한자의 음을 쓰시오: 年年沙浦口', answer: '년년사포구', hint: 'ㄴㄴㅅㅍㄱ' },
-            { question: '해석 순서를 쓰시오: 年年沙浦口', answer: '12345', hint: '1 _ 2 _ 3 _' },
-            { question: '토를 쓰시오: 年年沙浦口', answer: '에', hint: '끝 글자: _에' },
-            { question: '한자의 음을 쓰시오: 腸斷望歸舟', answer: '장단망귀주', hint: 'ㅈㄷㅁㄱㅈ' },
-            { question: '해석 순서를 쓰시오: 腸斷望歸舟', answer: '12534', hint: '1 _ 2 _ 3 _' },
-            { question: '토를 쓰시오: 腸斷望歸舟', answer: '라', hint: '라' },
-            { question: '한자의 음을 쓰시오: 貧', answer: '가난할 빈', hint: '가난할' },
-            { question: '한자의 음을 쓰시오: 歡', answer: '기쁠 환', hint: '기쁠' },
-            { question: '한자의 음을 쓰시오: 深', answer: '깊을 심', hint: '깊을' },
-            { question: '한자의 음을 쓰시오: 驚', answer: '놀랄 경', hint: '놀랄' },
-            { question: '한자의 음을 쓰시오: 京', answer: '서울 경', hint: '서울' },
-            { question: '한자의 음을 쓰시오: 彼', answer: '저 피', hint: '저' },
-            { question: '한자의 음을 쓰시오: 忙', answer: '바쁠 망', hint: '바쁠' },
-            { question: '한자의 음을 쓰시오: 間', answer: '사이 간', hint: '사이' },
-            { question: '한자의 음을 쓰시오: 脫', answer: '벗을 탈', hint: '벗을' },
-            { question: '한자의 음을 쓰시오: 算', answer: '셈 산', hint: '셈' },
-            { question: '강남곡의 형식은?', answer: '5언 절구', hint: '5ㅇㅈㄱ' },
-            { question: '어수장우중문시의 형식은?', answer: '오언시', hint: 'ㅇㅇㅅ' },
-            { question: '어수장우중우시의 주제는?(xxx에대한 xx과 xx의 형식으로 쓰시오)', answer: '우중문에 대한 조롱과 경고', hint: 'ㅇㅈㅁ에 대한 ㅈㄹ과 ㄱㄱ' },
+
+{ question: '최빈값을 쓰시오: 1, 1, 2, 3, 3, 3 answer: '3', hint: '느그가 풀어라' }, { question: '최빈값을 쓰시오: 1, 2, 3, 4, 5, 1', answer: '1', hint: '느그가 풀어라' }, { question: '최빈값을 쓰시오: 1, 1, 1, 2, 3', answer: '1', hint: '느그가 풀어라' }, { question: '최빈값을 쓰시오: 1, 1, 2, 2, 2', answer: '2', hint: '느그가 풀어라' }, { question: '최빈값을 쓰시오: 1, 1, 2, 3, 3, 3', answer: '3', hint: '느그가 풀어라' }, { question: '최빈값을 쓰시오: 1, 1, 2, 100', answer: '1', hint: '느그가 풀어라' }, { question: '최빈값을 쓰시오: 1, 1, 1, 1, 1, 5', answer: '1', hint: '느그가 풀어라' }, { question: '최빈값을 쓰시오: 1, 1, 2, 2, 5', answer: '1, 2', hint: '느그가 풀어라' }, { question: '최빈값을 쓰시오: 1, 1, 2, 2, 3, 3, 3', answer: '1, 3', hint: '느그가 풀어라' },
+
+
             
         ];
 
